@@ -1,11 +1,11 @@
 // Reference: 
-// https://developers.google.com/maps/documentation/javascript/examples/layer-bicycling
+// https://developers.google.com/maps/documentation/directions/get-directions#DirectionsResponses
 
 let map;
-let directionsRenderer
+let directionsRenderer;
 let directionsService;
 let geocoder;
-let response;
+let allRoutes = [];
 
 async function initMap() {
     const { Map } = await google.maps.importLibrary("maps");
@@ -14,15 +14,17 @@ async function initMap() {
     directionsService = new google.maps.DirectionsService();
     geocoder = new google.maps.Geocoder();
 
+    // Create a map centered at Melbourne CBD
     map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: -37.8136, lng: 144.9631 },
-        zoom: 14,
+        zoom: 15,
         mapTypeControl: false,
     });
 
     directionsRenderer.setMap(map);
 }
 
+// Function to display route between two locations (called from HTML)
 window.displayRoute = function displayRoute() {
     const start = document.getElementById('start').value;
     const end = document.getElementById('end').value;
@@ -39,6 +41,7 @@ window.displayRoute = function displayRoute() {
     });
 }
 
+// Function to geocode an address
 function geocodeAddress(address, callback) {
     geocoder.geocode({ 'address': address }, (results, status) => {
         if (status === 'OK') {
@@ -50,35 +53,94 @@ function geocodeAddress(address, callback) {
     });
 }
 
+// Function to get directions between two locations using the DirectionsService
 function getDirections(startLocation, endLocation) {
     directionsService.route(
         {
             origin: startLocation,
             destination: endLocation,
-            travelMode: google.maps.TravelMode.BICYCLING
+            travelMode: google.maps.TravelMode.BICYCLING,
+            provideRouteAlternatives: true
         },
         (response, status) => {
             if (status === 'OK') {
                 directionsRenderer.setDirections(response);
-
-                const routeInfo = response.routes[0];
-                displayRouteInfo(routeInfo);
+                allRoutes = response.routes;
+                displayAllRoutes(allRoutes);
             } else {
-                alert('Could not display directions due to: ' + status);
+                displayNoRoutesMessage();
             }
         }
     );
 }
 
-function displayRouteInfo(route) {
+// Function to display all available routes
+function displayAllRoutes(routes) {
+    const routeInfoSection = document.getElementById("route");
+    routeInfoSection.innerHTML = "<h5>Available Routes</h5>";
+
+    if (routes.length === 0) {
+        displayNoRoutesMessage();
+        return;
+    }
+
+    routes.forEach((route, index) => {
+        const routeDiv = document.createElement("div");
+        routeDiv.innerHTML = `
+                    <h6>Route ${index + 1}</h6>
+                    <p><strong>Distance:</strong> ${route.legs[0].distance.text}</p>
+                    <p><strong>Duration:</strong> ${route.legs[0].duration.text}</p>
+                    <button class="route-button" onclick="displayRouteInfo(${index})">View Details</button>
+                    <hr />
+                `;
+        routeInfoSection.appendChild(routeDiv);
+    });
+}
+
+// Function to display specific route information
+window.displayRouteInfo = function displayRouteInfo(routeIndex) {
+    const route = allRoutes[routeIndex];
     const routeInfoSection = document.getElementById("route");
     routeInfoSection.innerHTML = `
-        <h5>Route Information</h5>
-        <p><strong>Distance:</strong> ${route.legs[0].distance.text}</p>
-        <p><strong>Duration:</strong> ${route.legs[0].duration.text}</p>
-        <p><strong>Start Address:</strong> ${route.legs[0].start_address}</p>
-        <p><strong>End Address:</strong> ${route.legs[0].end_address}</p>
-    `;
+                <h5>Route Information</h5>
+                <p><strong>Distance:</strong> ${route.legs[0].distance.text}</p>
+                <p><strong>Duration:</strong> ${route.legs[0].duration.text}</p>
+                <p><strong>Start Address:</strong> ${route.legs[0].start_address}</p>
+                <p><strong>End Address:</strong> ${route.legs[0].end_address}</p>
+            `;
+}
+
+// Function to display message when no routes are available
+function displayNoRoutesMessage() {
+    const routeInfoSection = document.getElementById("route");
+    const start = document.getElementById('start').value;
+    const end = document.getElementById('end').value;
+    routeInfoSection.innerHTML = `<p><strong>No available bicycle route from ${start} to ${end}.</strong></p>`;
+}
+
+// Function to start over the route planning
+window.startOver = function startOver() {
+    const startInput = document.getElementById('start');
+    const endInput = document.getElementById('end');
+    const routeSection = document.getElementById('route');
+
+    if (startInput && endInput && routeSection) {
+        startInput.value = '';
+        endInput.value = '';
+        routeSection.innerHTML = `
+            <h4>Plan Your Journey</h4>
+            <p>
+                Enter the starting point and destination point to obtain route
+                information.
+            </p>
+                `;
+
+        // Reset map to default location and zoom level
+        map.setCenter({ lat: -37.8136, lng: 144.9631 });
+        map.setZoom(14);
+    } else {
+        console.error('One or more elements not found for startOver function.');
+    }
 }
 
 initMap();

@@ -29,14 +29,14 @@ async function initMap() {
         zoom: 8,
         // In the cloud console, configure your Map ID with a style that enables the
         // 'Administrative Area Level 2' Data Driven Styling type.
-        mapId: "MAP_ID", // Substitute your own map ID.
+        mapId: "a3efe1c035bad51b", // Substitute your own map ID.
         mapTypeControl: false,
     });
 
     // TODO: Add a feature layer to the map that displays the "Geospatial Distribution" feature type.   
     // Add the feature layer
     //@ts-ignore
-    featureLayer = map.getFeatureLayer(google.maps.FeatureType.Geospatial_Distribution);
+    featureLayer = map.getFeatureLayer(google.maps.FeatureType.ADMINISTRATIVE_AREA_LEVEL_2);
 
     // Add the event listeners for the feature layer
     featureLayer.addListener("click", handleClick);

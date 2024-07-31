@@ -26,17 +26,24 @@
 
     <div class="container-fluid h-100">
       <div class="row h-100">
+        <div class="col-8 panel">
+          <input id="start" type="text" placeholder="Starting point" />
+          <input id="end" type="text" placeholder="Destination point" />
+        </div>
+        <div class="col-4 panel">
+          <button class="route-button" onclick="displayRoute()">
+            Get Route
+          </button>
+          <button class="route-button" onclick="startOver()">Reset</button>
+        </div>
         <div id="map" class="col-8"></div>
         <div class="col-4 info-section" id="route">
-          <div id="panel">
+          <div>
             <h4>Plan Your Journey</h4>
             <p>
               Enter the starting point and destination point to obtain route
               information.
             </p>
-            <input id="start" type="text" placeholder="Starting point" />
-            <input id="end" type="text" placeholder="Destination point" />
-            <button onclick="displayRoute()">Get Route</button>
           </div>
         </div>
       </div>

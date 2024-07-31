@@ -16,20 +16,28 @@ body {
   height: 100%;
 }
 
-#panel {
+.panel {
+  display: flex;
   justify-content: space-between;
-  margin: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
 }
 
-#panel button,
-#panel input {
-  padding: 10px;
-  margin: 10px;
+.panel input,
+.route-button {
+  padding: 10px 25px;
+  margin: 0 15px;
   background: #f4f4f4;
   border: #909090 solid 1px;
   border-radius: 10px;
   color: #212124;
   cursor: pointer;
+  flex: 1;
+}
+
+.panel input {
+  flex: 2;
 }
 
 .navbar {
@@ -72,7 +80,8 @@ nav {
   text-decoration: none;
 }
 
-.card:hover {
+.card:hover,
+.route-button:hover {
   -ms-transform: translateY(-2px);
   transform: translateY(-2px);
   -webkit-box-shadow: 0 3px 40px 0 rgba(206, 205, 205, 0.3);

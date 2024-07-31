@@ -1,6 +1,7 @@
 // Reference: 
 // https://developers.google.com/maps/documentation/javascript/examples/boundaries-choropleth
 // https://developers.google.com/maps/documentation/javascript/examples/boundaries-click
+// https://developers.google.com/chart/interactive/docs/gallery/columnchart
 
 let map;
 

@@ -4,70 +4,126 @@
 // https://developers.google.com/chart/interactive/docs/gallery/columnchart
 
 let map;
+let featureLayer;
+let lastInteractedFeatureIds = [];
+let lastClickedFeatureIds = [];
+
+function handleClick(/* MouseEvent */ e) {
+    lastClickedFeatureIds = e.features.map((f) => f.placeId);
+    lastInteractedFeatureIds = [];
+    featureLayer.style = applyStyle;
+    displayChart(e);
+}
+
+function handleMouseMove(/* MouseEvent */ e) {
+    lastInteractedFeatureIds = e.features.map((f) => f.placeId);
+    featureLayer.style = applyStyle;
+}
 
 async function initMap() {
-    const position = { lat: -37.8136, lng: 144.9631 };
     // Request needed libraries.
     const { Map } = await google.maps.importLibrary("maps");
 
     map = new Map(document.getElementById("map"), {
-        zoom: 15,
-        center: position,
-        mapId: "DEMO_MAP_ID",
+        center: { lat: 39.23, lng: -105.73 },
+        zoom: 8,
+        // In the cloud console, configure your Map ID with a style that enables the
+        // 'Administrative Area Level 2' Data Driven Styling type.
+        mapId: "MAP_ID", // Substitute your own map ID.
+        mapTypeControl: false,
     });
+
+    // TODO: Add a feature layer to the map that displays the "Geospatial Distribution" feature type.   
+    // Add the feature layer
+    //@ts-ignore
+    featureLayer = map.getFeatureLayer(google.maps.FeatureType.Geospatial_Distribution);
+
+    // Add the event listeners for the feature layer
+    featureLayer.addListener("click", handleClick);
+    featureLayer.addListener("mousemove", handleMouseMove);
+
+    // Map event listener
+    map.addListener("mousemove", () => {
+        // If the map gets a mousemove, that means there are no feature layers
+        // with listeners registered under the mouse, so we clear the last
+        // interacted feature ids.
+        if (lastInteractedFeatureIds?.length) {
+            lastInteractedFeatureIds = [];
+            featureLayer.style = applyStyle;
+        }
+    });
+    // Apply style on load, to enable clicking.
+    featureLayer.style = applyStyle;
+}
+
+// Helper function for displaying distribution column chart
+async function displayChart(event) {
+    let feature = event.features[0];
+
+    if (!feature.placeId) return;
+
+    google.charts.load("current", { packages: ['corechart'] });
+    google.charts.setOnLoadCallback(drawChart);
+}
+
+// Define styles.
+// Stroke and fill with minimum opacity value.
+const styleDefault = {
+    strokeColor: "#810FCB",
+    strokeOpacity: 1.0,
+    strokeWeight: 2.0,
+    fillColor: "white",
+    fillOpacity: 0.1, // Polygons must be visible to receive events.
+};
+// Style for the clicked polygon.
+const styleClicked = {
+    ...styleDefault,
+    fillColor: "#810FCB",
+    fillOpacity: 0.5,
+};
+// Style for polygon on mouse move.
+const styleMouseMove = {
+    ...styleDefault,
+    strokeWeight: 4.0,
+};
+
+// Apply styles using a feature style function.
+function applyStyle(/* FeatureStyleFunctionOptions */ params) {
+    const placeId = params.feature.placeId;
+
+    //@ts-ignore
+    if (lastClickedFeatureIds.includes(placeId)) {
+        return styleClicked;
+    }
+
+    //@ts-ignore
+    if (lastInteractedFeatureIds.includes(placeId)) {
+        return styleMouseMove;
+    }
+    return styleDefault;
+}
+
+// google.charts.load("current", { packages: ['corechart'] });
+// google.charts.setOnLoadCallback(drawChart);
+
+function drawChart() {
+    // TODO: fetch data from backend
+    var data = google.visualization.arrayToDataTable([
+        ["Accidents", "Case", { role: "style" }],
+        ["Mild", 65, "color: #2280ff"],
+        ["Severe", 16, "color: #20BFF7"],
+        ["Fatal", 18, "color: #FFBC99"]
+    ]);
+
+    var options = {
+        height: 500,
+        bar: { groupWidth: "90%" },
+        legend: { position: "none" },
+        backgroundColor: { fill: '#f4f4f4' },
+    };
+
+    var chart = new google.visualization.ColumnChart(document.getElementById("chart"));
+    chart.draw(data, options);
 }
 
 initMap();
-
-// // TODO: Add a feature layer to the map that displays the "Geospatial Distribution" feature type.   
-// async function initMap() {
-//     // Request needed libraries.
-//     const { Map } = await google.maps.importLibrary("maps");
-//     const map = new Map(document.getElementById("map"), {
-//         center: { lat: -37.8136, lng: 144.9631 },
-//         zoom: 15,
-//         // In the cloud console, configure this Map ID with a style that enables the
-//         // "Geospatial Distribution" feature layer.
-//         mapId: "MAP_ID",
-//     });
-//     const featureLayer = map.getFeatureLayer(
-//         google.maps.FeatureType.Geospatial_Distribution,
-//     );
-
-//     featureLayer.style = (featureStyleFunctionOptions) => {
-//         const placeFeature = featureStyleFunctionOptions.feature;
-//         const accident = regions[placeFeature.placeId];
-//         let fillColor;
-
-//         // Specify colors using any of the following:
-//         // * Named ('green')
-//         // * Hexadecimal ('#FF0000')
-//         // * RGB ('rgb(0, 0, 255)')
-//         // * HSL ('hsl(60, 100%, 50%)')
-//         if (accident < 2000000) {
-//             fillColor = "green";
-//         } else if (accident < 5000000) {
-//             fillColor = "red";
-//         } else if (accident < 10000000) {
-//             fillColor = "blue";
-//         } else if (accident < 40000000) {
-//             fillColor = "yellow";
-//         }
-//         return {
-//             fillColor,
-//             fillOpacity: 0.5,
-//         };
-//     };
-
-//     // TODO: Number of Accidents in each region
-//     const regions = {
-//         "ChIJdf5LHzR_hogR6czIUzU0VV4": 5039877, // Alabama
-//         "ChIJG8CuwJzfAFQRNduKqSde27w": 732673, // Alaska
-//         "ChIJaxhMy-sIK4cRcc3Bf7EnOUI": 7276316, // Arizona
-//         "ChIJYSc_dD-e0ocR0NLf_z5pBaQ": 3025891, // Arkansas
-//         "ChIJPV4oX_65j4ARVW8IJ6IJUYs": 39237836, // California
-//         "ChIJt1YYm3QUQIcR_6eQSTGDVMc": 5812069, // Colorado
-//     };
-// }
-
-// initMap();

@@ -16,6 +16,22 @@ body {
   height: 100%;
 }
 
+#panel {
+  justify-content: space-between;
+  margin: 10px;
+}
+
+#panel button,
+#panel input {
+  padding: 10px;
+  margin: 10px;
+  background: #f4f4f4;
+  border: #909090 solid 1px;
+  border-radius: 10px;
+  color: #212124;
+  cursor: pointer;
+}
+
 .navbar {
   margin-bottom: 0;
 }

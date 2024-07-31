@@ -27,10 +27,16 @@
     <div class="container-fluid h-100">
       <div class="row h-100">
         <div id="map" class="col-8"></div>
-        <div class="col-4 info-section">
-          <h4>Plan Your Journey</h4>
-          <div id="route">
-            <p>Click on a route to view more.</p>
+        <div class="col-4 info-section" id="route">
+          <div id="panel">
+            <h4>Plan Your Journey</h4>
+            <p>
+              Enter the starting point and destination point to obtain route
+              information.
+            </p>
+            <input id="start" type="text" placeholder="Starting point" />
+            <input id="end" type="text" placeholder="Destination point" />
+            <button onclick="displayRoute()">Get Route</button>
           </div>
         </div>
       </div>

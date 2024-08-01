@@ -95,6 +95,27 @@ nav {
   height: 100%;
 }
 
+.legend {
+  margin-top: 20px;
+}
+
+.legend h5 {
+  margin-bottom: 10px;
+}
+
+.legend div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  margin-right: 10px;
+}
+
 .panel {
   display: flex;
   justify-content: space-between;

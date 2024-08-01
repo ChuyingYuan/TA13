@@ -1,129 +1,191 @@
 // Reference: 
-// https://developers.google.com/maps/documentation/javascript/examples/boundaries-choropleth
-// https://developers.google.com/maps/documentation/javascript/examples/boundaries-click
-// https://developers.google.com/chart/interactive/docs/gallery/columnchart
+// https://developers.google.com/maps/documentation/javascript/examples/circle-simple
+// https://developers.google.com/maps/documentation/javascript/shapes#circles
+// https://developers.google.com/chart/interactive/docs/gallery/barchart
 
 let map;
-let featureLayer;
-let lastInteractedFeatureIds = [];
-let lastClickedFeatureIds = [];
+let roadAccidentData = {};
+let activeCircle = null;
 
-function handleClick(/* MouseEvent */ e) {
-    lastClickedFeatureIds = e.features.map((f) => f.placeId);
-    lastInteractedFeatureIds = [];
-    featureLayer.style = applyStyle;
-    displayChart(e);
-}
-
-function handleMouseMove(/* MouseEvent */ e) {
-    lastInteractedFeatureIds = e.features.map((f) => f.placeId);
-    featureLayer.style = applyStyle;
-}
-
-async function initMap() {
-    // Request needed libraries.
-    const { Map } = await google.maps.importLibrary("maps");
-
-    map = new Map(document.getElementById("map"), {
-        center: { lat: 39.23, lng: -105.73 },
-        zoom: 8,
-        // In the cloud console, configure your Map ID with a style that enables the
-        // 'Administrative Area Level 2' Data Driven Styling type.
-        mapId: "a3efe1c035bad51b", // Substitute your own map ID.
-        mapTypeControl: false,
-    });
-
-    // TODO: Add a feature layer to the map that displays the "Geospatial Distribution" feature type.   
-    // Add the feature layer
-    //@ts-ignore
-    featureLayer = map.getFeatureLayer(google.maps.FeatureType.ADMINISTRATIVE_AREA_LEVEL_2);
-
-    // Add the event listeners for the feature layer
-    featureLayer.addListener("click", handleClick);
-    featureLayer.addListener("mousemove", handleMouseMove);
-
-    // Map event listener
-    map.addListener("mousemove", () => {
-        // If the map gets a mousemove, that means there are no feature layers
-        // with listeners registered under the mouse, so we clear the last
-        // interacted feature ids.
-        if (lastInteractedFeatureIds?.length) {
-            lastInteractedFeatureIds = [];
-            featureLayer.style = applyStyle;
+// TODO: replace '/TA13/CBD_Accident.geojson' with the correct path to the GeoJSON file (S3 bucket URL)
+// Fetch GeoJSON data
+async function fetchGeoJson() {
+    try {
+        const response = await fetch('/TA13/CBD_Accident.geojson');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const geoJsonData = await response.json();
+        console.log("Fetched GeoJSON Data:", geoJsonData);
+        return geoJsonData;
+    } catch (error) {
+        console.error('Error fetching the GeoJSON data:', error);
+        return null;
+    }
+}
+
+// Group accidents by road name and type
+function groupAccidentsByRoad(geoJsonData) {
+    if (!geoJsonData || !geoJsonData.features) {
+        console.error('Invalid GeoJSON data:', geoJsonData);
+        return;
+    }
+
+    geoJsonData.features.forEach((feature) => {
+        const roadName = feature.properties.ROAD_NAME;
+        const roadType = feature.properties.ROAD_TYPE;
+        const roadKey = `${roadName}_${roadType}`;
+
+        if (!roadAccidentData[roadKey]) {
+            roadAccidentData[roadKey] = {
+                accidents: [],
+                coordinates: feature.geometry.coordinates
+            };
+        }
+        roadAccidentData[roadKey].accidents.push(feature);
     });
-    // Apply style on load, to enable clicking.
-    featureLayer.style = applyStyle;
 }
 
-// Helper function for displaying distribution column chart
-async function displayChart(event) {
-    let feature = event.features[0];
+// Initialize the map and display the accidents
+async function initMap() {
+    const geoJsonData = await fetchGeoJson();
+    if (geoJsonData) {
+        groupAccidentsByRoad(geoJsonData);
+        console.log("Grouped Road Accident Data:", roadAccidentData); // Debugging log
 
-    if (!feature.placeId) return;
+        const { Map } = await google.maps.importLibrary("maps");
 
-    google.charts.load("current", { packages: ['corechart'] });
-    google.charts.setOnLoadCallback(drawChart);
-}
+        // Center the map on Melbourne CBD
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: -37.8136, lng: 144.9631 },
+            zoom: 15,
+            mapTypeControl: false,
+        });
 
-// Define styles.
-// Stroke and fill with minimum opacity value.
-const styleDefault = {
-    strokeColor: "#810FCB",
-    strokeOpacity: 1.0,
-    strokeWeight: 2.0,
-    fillColor: "white",
-    fillOpacity: 0.1, // Polygons must be visible to receive events.
-};
-// Style for the clicked polygon.
-const styleClicked = {
-    ...styleDefault,
-    fillColor: "#810FCB",
-    fillOpacity: 0.5,
-};
-// Style for polygon on mouse move.
-const styleMouseMove = {
-    ...styleDefault,
-    strokeWeight: 4.0,
-};
+        // Display the accident severity on the map as circles
+        for (let roadKey in roadAccidentData) {
+            const roadData = roadAccidentData[roadKey];
+            const accidentCount = roadData.accidents.length;
 
-// Apply styles using a feature style function.
-function applyStyle(/* FeatureStyleFunctionOptions */ params) {
-    const placeId = params.feature.placeId;
+            let circleColor;
+            let selectedColor = "#fdc500";
+            let selectedBorder = "#000";
 
-    //@ts-ignore
-    if (lastClickedFeatureIds.includes(placeId)) {
-        return styleClicked;
+            if (accidentCount < 10) {
+                circleColor = "#2280ff";
+            }
+            else {
+                circleColor = "#e63946";
+            }
+
+            const circle = new google.maps.Circle({
+                strokeColor: circleColor,
+                strokeOpacity: 1,
+                strokeWeight: 1,
+                fillColor: circleColor,
+                fillOpacity: 0.8,
+                map,
+                center: { lat: roadData.coordinates[1], lng: roadData.coordinates[0] },
+                radius: 30,
+            });
+
+            // Change circle color on mouse hover
+            circle.addListener('mouseover', () => {
+                if (circle !== activeCircle) {
+                    circle.setOptions({
+                        fillColor: selectedColor,
+                        strokeColor: selectedBorder
+                    });
+                }
+            });
+
+            // Reset circle color on mouse out
+            circle.addListener('mouseout', () => {
+                if (circle !== activeCircle) {
+                    circle.setOptions({
+                        fillColor: circleColor,
+                        strokeColor: circleColor
+                    });
+                }
+            });
+
+            // Emphasize selected circle
+            circle.addListener('click', () => {
+                if (activeCircle) {
+                    activeCircle.setOptions({
+                        fillColor: circleColor,
+                        strokeColor: circleColor
+                    });
+                }
+                circle.setOptions({
+                    fillColor: selectedColor,
+                    strokeColor: selectedBorder
+                });
+                activeCircle = circle;
+
+                displaySeverityChart(roadKey);
+                displayWeekdayChart(roadKey);
+            });
+        }
+    } else {
+        console.error('Failed to load GeoJSON data.');
     }
-
-    //@ts-ignore
-    if (lastInteractedFeatureIds.includes(placeId)) {
-        return styleMouseMove;
-    }
-    return styleDefault;
 }
 
-// google.charts.load("current", { packages: ['corechart'] });
-// google.charts.setOnLoadCallback(drawChart);
+// Display the accident severity chart
+async function displaySeverityChart(roadKey) {
+    const roadData = roadAccidentData[roadKey];
+    const severityData = roadData.accidents;
 
-function drawChart() {
-    // TODO: fetch data from backend
-    var data = google.visualization.arrayToDataTable([
-        ["Accidents", "Case", { role: "style" }],
-        ["Mild", 65, "color: #2280ff"],
-        ["Severe", 16, "color: #20BFF7"],
-        ["Fatal", 18, "color: #FFBC99"]
+    const data = google.visualization.arrayToDataTable([
+        ["Severity", "Case(s)", { role: "style" }],
+        ["Other", severityData.filter(row => row.properties.SEVERITY === 'Other injury accident').length, "color: #2280ff"],
+        ["Serious", severityData.filter(row => row.properties.SEVERITY === 'Serious injury accident').length, "color: #e63946"]
     ]);
 
-    var options = {
-        height: 500,
-        bar: { groupWidth: "90%" },
+    const options = {
+        title: `Accident Severity Distribution on ${roadKey.replace('_', ' ')}`,
+        height: 250,
+        bar: { groupWidth: "30%" },
         legend: { position: "none" },
         backgroundColor: { fill: '#f4f4f4' },
+        hAxis: { title: 'Case(s)' },
+        vAxis: { title: 'Severity' }
     };
 
-    var chart = new google.visualization.ColumnChart(document.getElementById("chart"));
+    const chart = new google.visualization.BarChart(document.getElementById('severityChart'));
     chart.draw(data, options);
 }
 
-initMap();
+// Display the accident occurrences by day of week chart
+async function displayWeekdayChart(roadKey) {
+    const roadData = roadAccidentData[roadKey];
+    const severityData = roadData.accidents;
+
+    const data = google.visualization.arrayToDataTable([
+        ["Day of Week", "Case(s)", { role: "style" }],
+        ["Monday", severityData.filter(row => row.properties.DAY_OF_WEEK === 'Monday').length, "color: #83d0cb"],
+        ["Tuesday", severityData.filter(row => row.properties.DAY_OF_WEEK === 'Tuesday').length, "color: #71bbbd"],
+        ["Wednesday", severityData.filter(row => row.properties.DAY_OF_WEEK === 'Wednesday').length, "color: #5ea6af"],
+        ["Thursday", severityData.filter(row => row.properties.DAY_OF_WEEK === 'Thursday').length, "color: #4c91a1"],
+        ["Friday", severityData.filter(row => row.properties.DAY_OF_WEEK === 'Friday').length, "color: #397c93"],
+        ["Saturday", severityData.filter(row => row.properties.DAY_OF_WEEK === 'Saturday').length, "color: #266785"],
+        ["Sunday", severityData.filter(row => row.properties.DAY_OF_WEEK === 'Sunday').length, "color: #145277"]
+    ]);
+
+    const options = {
+        title: `Accident Occurrences by Day of Week on ${roadKey.replace('_', ' ')}`,
+        height: 300,
+        bar: { groupWidth: "50%" },
+        legend: { position: "none" },
+        backgroundColor: { fill: '#f4f4f4' },
+        hAxis: { title: 'Case(s)' },
+        vAxis: { title: 'Day of Week' }
+    };
+
+    const chart = new google.visualization.BarChart(document.getElementById('weekdayChart'));
+    chart.draw(data, options);
+}
+
+google.charts.load("current", { packages: ['corechart'] });
+google.charts.setOnLoadCallback(initMap);

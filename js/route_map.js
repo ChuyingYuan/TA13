@@ -1,5 +1,8 @@
 // Reference: 
 // https://developers.google.com/maps/documentation/directions/get-directions#DirectionsResponses
+// https://developers.google.com/maps/documentation/geocoding/requests-geocoding
+// https://developers.google.com/maps/documentation/javascript/reference/coordinates
+// https://developers.google.com/maps/documentation/javascript/reference/geometry#spherical
 
 let map;
 let directionsRenderer;
@@ -7,9 +10,27 @@ let directionsService;
 let geocoder;
 let allRoutes = [];
 let polylineList = [];
+let markerList = [];
+let accidentsData = [];
+
+// TODO: replace '/TA13/CBD_Accident.geojson' with the correct path to the GeoJSON file (S3 bucket URL)
+// Fetch GeoJSON data
+async function fetchGeoJson() {
+    try {
+        const response = await fetch('/TA13/CBD_Accident.geojson');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const geoJsonData = await response.json();
+        accidentsData = geoJsonData.features;
+        console.log("Fetched GeoJSON Data:", accidentsData);
+    } catch (error) {
+        console.error('Error fetching the GeoJSON data:', error);
+    }
+}
 
 async function initMap() {
-    const { Map } = await google.maps.importLibrary("maps");
+    await google.maps.importLibrary("maps");
 
     directionsRenderer = new google.maps.DirectionsRenderer();
     directionsService = new google.maps.DirectionsService();
@@ -20,9 +41,12 @@ async function initMap() {
         center: { lat: -37.8136, lng: 144.9631 },
         zoom: 15,
         mapTypeControl: false,
+        mapId: "a56f2a79b03a2c89",
     });
 
     directionsRenderer.setMap(map);
+
+    await fetchGeoJson();
 }
 
 // Function to display route between two locations (called from HTML)
@@ -85,14 +109,13 @@ function displayAllRoutes(routes) {
         return;
     }
 
-    // Clear previous polylines
+    // Clear previous route and markers
     clearPolylines();
+    clearMarkers();
 
     routes.forEach((route, index) => {
-        // Extract path from route
         const path = google.maps.geometry.encoding.decodePath(route.overview_polyline);
 
-        // Add polyline to the map
         addPolylineToMap(path);
 
         const routeDiv = document.createElement("div");
@@ -107,27 +130,6 @@ function displayAllRoutes(routes) {
     });
 }
 
-// Function to add a polyline to the map
-function addPolylineToMap(path) {
-    const polyline = new google.maps.Polyline({
-        path: path,
-        geodesic: true,
-        strokeColor: "#457b9d",
-        strokeOpacity: 0.6,
-        strokeWeight: 5
-    });
-
-    polyline.setMap(map);
-    polylineList.push(polyline);
-}
-
-// Function to clear all polylines from the map
-function clearPolylines() {
-    polylineList.forEach(polyline => polyline.setMap(null));
-    polylineList = [];
-}
-
-
 // Function to display specific route information
 window.displayRouteInfo = function displayRouteInfo(routeIndex) {
     const selectedRoute = allRoutes[routeIndex];
@@ -136,17 +138,26 @@ window.displayRouteInfo = function displayRouteInfo(routeIndex) {
         return;
     }
 
-    // Clear previous polylines
+    // Clear previous routes and markers
     clearPolylines();
+    clearMarkers();
 
-    // Create and add polyline for the selected route
+    // Create and add route for the selected route
     const path = google.maps.geometry.encoding.decodePath(selectedRoute.overview_polyline);
     addPolylineToMap(path);
 
-    // Update route information display
+    // Calculate and display accident statistics
+    const accidentStats = calculateAccidentStats(path);
+
+    // Display Risk Insights and Route Information
     const routeInfoSection = document.getElementById("route");
     routeInfoSection.innerHTML = `
-        <h5>Route Information</h5>
+        <h6><strong>Accident Statistics</strong></h6>
+        <p><strong>Total Accidents Occured on the Selected Route:</strong> ${accidentStats.total}</p>
+        <p><strong>Accidents Occurred on Weekday:</strong> ${accidentStats.weekdays}</p>
+        <p><strong>Accidents Occurred on Weekend:</strong> ${accidentStats.weekends}</p>
+        <hr />
+        <h6><strong>Route Information</strong></h6>
         <p><strong>Distance:</strong> ${selectedRoute.legs[0].distance.text}</p>
         <p><strong>Duration:</strong> ${selectedRoute.legs[0].duration.text}</p>
         <p><strong>Start Address:</strong> ${selectedRoute.legs[0].start_address}</p>
@@ -155,6 +166,90 @@ window.displayRouteInfo = function displayRouteInfo(routeIndex) {
         <ol id="steps"></ol>
     `;
     displayRouteSteps(selectedRoute.legs[0].steps);
+}
+
+// Function to calculate accident statistics for a route
+function calculateAccidentStats(routePath) {
+    // Maximum distance (in meters) from the route
+    const MAX_DISTANCE_METERS = 15;
+
+    // Filter accidents within a certain distance from the route path
+    const accidentsInRange = accidentsData.filter(accident => {
+        const accidentLocation = new google.maps.LatLng(accident.geometry.coordinates[1], accident.geometry.coordinates[0]);
+
+        // Check if the accident is close to any segment of the route path
+        for (let i = 0; i < routePath.length - 1; i++) {
+            const segmentStart = routePath[i];
+            const segmentEnd = routePath[i + 1];
+            const distanceToSegment = calculateDistanceToSegment(accidentLocation, segmentStart, segmentEnd);
+
+            if (distanceToSegment <= MAX_DISTANCE_METERS) {
+                return true;
+            }
+        }
+        return false;
+    });
+
+    const totalAccidents = accidentsInRange.length;
+    let weekdays = 0;
+    let weekends = 0;
+
+    accidentsInRange.forEach(accident => {
+        const accidentWeekday = accident.properties.DAY_OF_WEEK;
+        if (["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].includes(accidentWeekday)) {
+            weekdays += 1;
+        } else {
+            weekends += 1;
+        }
+
+        // Add markers for accidents on the route
+        const accidentLocation = new google.maps.LatLng(accident.geometry.coordinates[1], accident.geometry.coordinates[0]);
+        const marker = new google.maps.Marker({
+            position: accidentLocation,
+            map: map,
+        });
+        markerList.push(marker);
+    });
+
+    return {
+        total: totalAccidents,
+        weekdays: weekdays,
+        weekends: weekends
+    };
+}
+
+// Function to project a point onto a line segment
+function projectPointOntoLineSegment(point, segmentStart, segmentEnd) {
+    const lineSegmentLengthSquared = calculateDistance(segmentStart, segmentEnd) ** 2;
+    if (lineSegmentLengthSquared === 0) {
+        return segmentStart;
+    }
+
+    const t = ((point.lat() - segmentStart.lat()) * (segmentEnd.lat() - segmentStart.lat()) +
+        (point.lng() - segmentStart.lng()) * (segmentEnd.lng() - segmentStart.lng())) /
+        lineSegmentLengthSquared;
+
+    if (t < 0) {
+        return segmentStart;
+    } else if (t > 1) {
+        return segmentEnd;
+    }
+
+    return new google.maps.LatLng(
+        segmentStart.lat() + t * (segmentEnd.lat() - segmentStart.lat()),
+        segmentStart.lng() + t * (segmentEnd.lng() - segmentStart.lng())
+    );
+}
+
+// Function to calculate the distance between two points
+function calculateDistance(latLng1, latLng2) {
+    return google.maps.geometry.spherical.computeDistanceBetween(latLng1, latLng2);
+}
+
+// Function to calculate the distance from a point to a line segment
+function calculateDistanceToSegment(point, segmentStart, segmentEnd) {
+    const projection = projectPointOntoLineSegment(point, segmentStart, segmentEnd);
+    return calculateDistance(point, projection);
 }
 
 // Function to display steps of a route
@@ -176,6 +271,33 @@ function displayNoRoutesMessage() {
     routeInfoSection.innerHTML = `<p><strong>No available bicycle route from ${start} to ${end}.</strong></p>`;
 }
 
+// Function to add a polyline to the map
+function addPolylineToMap(path) {
+    const polyline = new google.maps.Polyline({
+        path: path,
+        geodesic: true,
+        strokeColor: "#457b9d",
+        strokeOpacity: 0.6,
+        strokeWeight: 5
+    });
+
+    polyline.setMap(map);
+    polylineList.push(polyline);
+}
+
+// Function to clear all routes from the map
+function clearPolylines() {
+    polylineList.forEach(polyline => polyline.setMap(null));
+
+    polylineList = [];
+}
+
+// Function to clear all accident markers from the map
+function clearMarkers() {
+    markerList.forEach(marker => marker.setMap(null));
+    markerList = [];
+}
+
 // Function to start over the route planning
 window.startOver = function startOver() {
     const startInput = document.getElementById('start');
@@ -193,12 +315,13 @@ window.startOver = function startOver() {
             </p>
         `;
 
-        // Reset map to default location and zoom level
+        // Reset map to default location (Melbourne CBD) and zoom level
         map.setCenter({ lat: -37.8136, lng: 144.9631 });
         map.setZoom(15);
 
-        // Clear directions
+        // Clear routes and markers
         clearPolylines();
+        clearMarkers();
     } else {
         console.error('One or more elements not found for startOver function.');
     }

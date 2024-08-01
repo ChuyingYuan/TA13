@@ -5,6 +5,85 @@ body {
   padding: 0;
 }
 
+p,
+li {
+  font-size: 16px;
+  line-height: 2;
+}
+
+.main-block {
+  padding: 40px 0;
+}
+
+.light-bg {
+  background: #edf0ec;
+}
+
+.dark-bg {
+  background: #b5c0b3;
+}
+
+.navbar {
+  margin-bottom: 0;
+}
+
+.navbar-nav {
+  margin: 0 25px;
+}
+
+nav {
+  background: #edf0ec;
+  color: #212124;
+  text-align: center;
+}
+
+.container {
+  margin-top: 30px;
+}
+
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.flex-container .col-md-5 {
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  background: #fff;
+  margin: 0 0 30px;
+  -webkit-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+  position: relative;
+  border: #909090 solid 1px;
+  border-radius: 15px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.card a,
+.card .intro {
+  margin: 10px;
+  padding: 20px;
+  color: #212124;
+  text-decoration: none;
+}
+
+.card:hover,
+.route-button:hover {
+  -ms-transform: translateY(-2px);
+  transform: translateY(-2px);
+  -webkit-box-shadow: 0 3px 40px 0 rgba(206, 205, 205, 0.3);
+  box-shadow: 0 3px 40px 0 rgba(206, 205, 205, 0.3);
+}
+
 #map {
   height: 100%;
 }
@@ -38,52 +117,4 @@ body {
 
 .panel input {
   flex: 2;
-}
-
-.navbar {
-  margin-bottom: 0;
-}
-
-.navbar-nav {
-  margin: 0 25px;
-}
-
-nav {
-  background: #edf0ec;
-  color: #212124;
-  text-align: center;
-}
-
-.container {
-  margin-top: 30px;
-}
-
-.card {
-  background: #fff;
-  margin: 0 0 30px;
-  -webkit-transition: all 0.5s ease;
-  -o-transition: all 0.5s ease;
-  transition: all 0.5s ease;
-  position: relative;
-  border: #909090 solid 1px;
-  border-radius: 15px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.card a {
-  margin: 10px;
-  padding: 20px;
-  background: #f4f4f4;
-  border: none;
-  border-radius: 10px;
-  color: #212124;
-  text-decoration: none;
-}
-
-.card:hover,
-.route-button:hover {
-  -ms-transform: translateY(-2px);
-  transform: translateY(-2px);
-  -webkit-box-shadow: 0 3px 40px 0 rgba(206, 205, 205, 0.3);
-  box-shadow: 0 3px 40px 0 rgba(206, 205, 205, 0.3);
 }

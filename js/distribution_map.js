@@ -26,7 +26,7 @@ async function fetchGeoJson() {
 
 // Group accidents by road name and type
 function groupAccidentsByRoad(geoJsonData) {
-    if (!geoJsonData || !geoJsonData.features) {
+    if (!geoJsonData?.features) {
         console.error('Invalid GeoJSON data:', geoJsonData);
         return;
     }
@@ -53,13 +53,14 @@ async function initMap() {
         groupAccidentsByRoad(geoJsonData);
         console.log("Grouped Road Accident Data:", roadAccidentData); // Debugging log
 
-        const { Map } = await google.maps.importLibrary("maps");
+        await google.maps.importLibrary("maps");
 
         // Center the map on Melbourne CBD
         map = new google.maps.Map(document.getElementById('map'), {
             center: { lat: -37.8136, lng: 144.9631 },
             zoom: 15,
             mapTypeControl: false,
+            mapId: "a56f2a79b03a2c89",
         });
 
         // Display the accident severity on the map as circles
@@ -73,8 +74,7 @@ async function initMap() {
 
             if (accidentCount < 10) {
                 circleColor = "#2280ff";
-            }
-            else {
+            } else {
                 circleColor = "#e63946";
             }
 

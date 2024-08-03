@@ -13,11 +13,10 @@ let polylineList = [];
 let markerList = [];
 let accidentsData = [];
 
-// TODO: replace '/TA13/CBD_Accident.geojson' with the correct path to the GeoJSON file (S3 bucket URL)
 // Fetch GeoJSON data
 async function fetchGeoJson() {
     try {
-        const response = await fetch('../CBD_Accident.geojson');
+        const response = await fetch('https://hm5wnvn96b.execute-api.ap-southeast-2.amazonaws.com/accident_data_access');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -28,6 +27,8 @@ async function fetchGeoJson() {
         console.error('Error fetching the GeoJSON data:', error);
     }
 }
+
+
 
 async function initMap() {
     await google.maps.importLibrary("maps");

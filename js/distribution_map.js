@@ -11,7 +11,7 @@ let activeCircle = null;
 // Fetch GeoJSON data
 async function fetchGeoJson() {
     try {
-        const response = await fetch('/TA13/CBD_Accident.geojson');
+        const response = await fetch('../CBD_Accident.geojson');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

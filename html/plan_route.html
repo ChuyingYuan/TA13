@@ -8,6 +8,16 @@
   <link rel="stylesheet" type="text/css" href="../css/style.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" />
   <script type="module" src="../js/route_map.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Sofia">
+
+  <style>
+    .card a {
+      text-decoration: none;
+    }
+    .navbar-brand {
+            font-family: "Sofia", sans-serif;
+        }
+  </style>
 </head>
 
 <body id="page-top" data-bs-spy="scroll" data-bs-target="#mainNav" data-bs-offset="77">
@@ -42,7 +52,7 @@
           </button>
           <button class="route-button" onclick="startOver()">Reset</button>
         </div>
-        <div id="map" class="col-8"></div>
+        <div id="map" class="col-8" style="height: fit-content; min-height: 80vh;"></div>
         <div class="col-4 info-section" id="route">
           <div>
             <h4>Plan Your Journey</h4>

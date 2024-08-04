@@ -13,28 +13,40 @@
     .card a {
       text-decoration: none;
     }
+
     .navbar-brand {
-            font-family: "Sofia", sans-serif;
-        }
+      font-family: "Sofia", sans-serif;
+    }
+
+    .masthead {
+      position: relative;
+      background-size: cover;
+      background-position: center;
+      height: 100vh;
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.9);
+
+    }
   </style>
 </head>
 
 <body id="page-top" data-bs-spy="scroll" data-bs-target="#mainNav" data-bs-offset="77">
   <nav class="navbar navbar-expand-md fixed-top navbar-light" id="mainNav">
-    <div class="container"><a class="navbar-brand" href="#" style="color: black;">PLAN-CYCLE</a><button data-bs-toggle="collapse"
-        class="navbar-toggler navbar-toggler-right" data-bs-target="#navbarResponsive" type="button"
-        aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation" value="Menu"><i
-          class="fa fa-bars"></i></button>
+    <div class="container"><a class="navbar-brand" href="#" style="color: black;">PLAN-CYCLE</a><button
+        data-bs-toggle="collapse" class="navbar-toggler navbar-toggler-right" data-bs-target="#navbarResponsive"
+        type="button" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"
+        value="Menu"><i class="fa fa-bars"></i></button>
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item nav-link"><a class="nav-link active" href="index.html" style="color: black;">HOME</a></li>
-          <li class="nav-item nav-link"><a class="nav-link" href="view_distribution.html" style="color: black;">Historical Data</a></li>
-          <li class="nav-item nav-link"><a class="nav-link" href="plan_route.html" style="color: black;">Plan Route</a></li>
+          <li class="nav-item nav-link"><a class="nav-link" href="view_distribution.html"
+              style="color: black;">Historical Data</a></li>
+          <li class="nav-item nav-link"><a class="nav-link" href="plan_route.html" style="color: black;">Plan Route</a>
+          </li>
         </ul>
       </div>
     </div>
   </nav>
-  <header class="masthead" style="background-image:url('../img/bg.jpg');">
+  <header class="masthead" style="background-image:linear-gradient(rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0.5)),url('../img/bg.jpg');">
     <div class="intro-body">
       <div class="container">
         <div class="row">
@@ -77,7 +89,8 @@
       <div class="row">
         <div class="col-1"></div>
         <div class="col-5">
-          <div class="card" style="background-color: #edf0ec; height: fit-content; min-height: 300px;  text-decoration: none;">
+          <div class="card"
+            style="background-color: #edf0ec; height: fit-content; min-height: 300px;  text-decoration: none;">
             <a href="view_distribution.html">
               <div>
                 <h3 style="color: black;"><strong>Historical Bicycle Accidents</strong></h6>

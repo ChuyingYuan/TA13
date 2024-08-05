@@ -795,3 +795,49 @@ nav {
   outline: none;
   background-color: #b5c0b3
 }
+
+@media(min-width: 992px) {
+  #mainNav {
+      padding-top: 20px;
+      padding-bottom: 20px;
+      transition: background .3s ease-in-out, padding-top .3s ease-in-out, padding-bottom .3s;
+      letter-spacing: 1px;
+      border-bottom: none;
+      background: #edf0ec
+  }
+
+  #mainNav.navbar-shrink {
+      padding-top: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, .3);
+      background: #edf0ec
+  }
+
+  #mainNav .nav-link.active {
+      outline: none;
+      background-color: #b5c0b3
+  }
+
+  #mainNav .nav-link.active:hover {
+      color: #fff
+  }
+}
+
+.navbar-expand-md .navbar-collapse {
+  display: flex !important;
+  flex-basis: auto
+}
+
+.navbar>.container, .navbar>.container-fluid, .navbar>.container-sm, .navbar>.container-md, .navbar>.container-lg, .navbar>.container-xl, .navbar>.container-xxl {
+  display: flex;
+  flex-wrap: inherit;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#mainNav {
+  font-family: "Cabin", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin-bottom: 0;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255, 255, 255, .3);
+}

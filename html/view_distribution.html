@@ -20,10 +20,11 @@
       .navbar-brand {
               font-family: "Sofia", sans-serif;
           }
+          
     </style>
   </head>
   <body id="page-top" data-bs-spy="scroll" data-bs-target="#mainNav" data-bs-offset="77">
-    <nav class="navbar navbar-expand-md fixed-top navbar-light" id="mainNav">
+    <nav class="navbar navbar-expand-md fixed-top navbar-light" id="mainNav" style="height: 96px;">
       <div class="container"><a class="navbar-brand" href="#" style="color: black;">PLAN-CYCLE</a><button data-bs-toggle="collapse"
           class="navbar-toggler navbar-toggler-right" data-bs-target="#navbarResponsive" type="button"
           aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation" value="Menu"><i
@@ -31,16 +32,16 @@
         <div class="collapse navbar-collapse" id="navbarResponsive">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item nav-link"><a class="nav-link" href="index.html" style="color: black; font-weight: bold;">HOME</a></li>
-            <li class="nav-item nav-link"><a class="nav-link active" href="view_distribution.html" style="color: black; font-weight: bold;">Historical Data</a></li>
-            <li class="nav-item nav-link"><a class="nav-link" href="plan_route.html" style="color: black; font-weight: bold;">Plan Route</a></li>
+            <li class="nav-item nav-link"><a class="nav-link active" href="view_distribution.html" style="color: black; font-weight: bold;">HISTORICAL DATA</a></li>
+            <li class="nav-item nav-link"><a class="nav-link" href="plan_route.html" style="color: black; font-weight: bold;">PLAN ROUTE</a></li>
           </ul>
         </div>
       </div>
     </nav>
 
-    <div class="container-fluid h-100">
+    <div class="container-fluid h-100" style="margin-top: 96px;">
       <div class="row h-100">
-        <div id="map" class="col-8"></div>
+        <div id="map" class="col-8" style="height: fit-content; min-height: 100vh;"></div>
         <div class="col-4 info-section">
           <h4>Bicycle Accidents Distribution</h4>
           <div class="legend">
@@ -79,4 +80,5 @@
   </body>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/script.min.js"></script>
 </html>

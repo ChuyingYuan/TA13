@@ -69,13 +69,17 @@ async function initMap() {
             const accidentCount = roadData.accidents.length;
 
             let circleColor;
+            let circleRadius;
             let selectedColor = "#fdc500";
             let selectedBorder = "#000";
 
             if (accidentCount < 10) {
                 circleColor = "#2280ff";
+                circleRadius = 15;
+
             } else {
                 circleColor = "#e63946";
+                circleRadius = 30;
             }
 
             const circle = new google.maps.Circle({
@@ -86,7 +90,7 @@ async function initMap() {
                 fillOpacity: 0.8,
                 map,
                 center: { lat: roadData.coordinates[1], lng: roadData.coordinates[0] },
-                radius: 30,
+                radius: circleRadius,
             });
 
             // Change circle color on mouse hover

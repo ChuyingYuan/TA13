@@ -75,7 +75,7 @@ async function initMap() {
 
             if (accidentCount < 10) {
                 circleColor = "#2280ff";
-                circleRadius = 15;
+                circleRadius = 20;
 
             } else {
                 circleColor = "#e63946";

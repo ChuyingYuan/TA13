@@ -1,11 +1,7 @@
-// Reference: 
-// https://developers.google.com/maps/documentation/javascript/examples/circle-simple
-// https://developers.google.com/maps/documentation/javascript/shapes#circles
-// https://developers.google.com/chart/interactive/docs/gallery/barchart
-
 let map;
 let roadAccidentData = {};
 let activeCircle = null;
+let previousCircleColor = null;
 
 // Fetch GeoJSON data
 async function fetchGeoJson() {
@@ -22,7 +18,6 @@ async function fetchGeoJson() {
         return null;
     }
 }
-
 
 // Group accidents by road name and type
 function groupAccidentsByRoad(geoJsonData) {
@@ -76,7 +71,6 @@ async function initMap() {
             if (accidentCount < 10) {
                 circleColor = "#2280ff";
                 circleRadius = 20;
-
             } else {
                 circleColor = "#e63946";
                 circleRadius = 30;
@@ -93,6 +87,9 @@ async function initMap() {
                 radius: circleRadius,
             });
 
+            // Store the original color in the circle object
+            circle.originalColor = circleColor;
+
             // Change circle color on mouse hover
             circle.addListener('mouseover', () => {
                 if (circle !== activeCircle) {
@@ -107,8 +104,8 @@ async function initMap() {
             circle.addListener('mouseout', () => {
                 if (circle !== activeCircle) {
                     circle.setOptions({
-                        fillColor: circleColor,
-                        strokeColor: circleColor
+                        fillColor: circle.originalColor,
+                        strokeColor: circle.originalColor
                     });
                 }
             });
@@ -117,10 +114,11 @@ async function initMap() {
             circle.addListener('click', () => {
                 if (activeCircle) {
                     activeCircle.setOptions({
-                        fillColor: circleColor,
-                        strokeColor: circleColor
+                        fillColor: previousCircleColor,
+                        strokeColor: previousCircleColor
                     });
                 }
+                previousCircleColor = circle.originalColor;
                 circle.setOptions({
                     fillColor: selectedColor,
                     strokeColor: selectedBorder
